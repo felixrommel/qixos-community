@@ -18,9 +18,8 @@
     qixosAppConfigurations.zotero-nube = qixCore.lib.mkNubeApp {
       modules = [
         ({ pkgs, ... }: {
-          home.packages = with pkgs; [zotero];
+          environment.systemPackages = with pkgs; [zotero];
         })
-#        opQixCommunity.nixosModules.modules.webdav { webdav.enable = true; }
         opQixCommunity.nixosModules.modules.blueprints.basic-template
       ];
     };
