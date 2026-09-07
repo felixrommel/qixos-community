@@ -50,6 +50,9 @@
     rustc
     cargo
     gcc
+    ghc
+    cabal-install
+    cabal2nix
     nodejs
     postgresql
     docker
