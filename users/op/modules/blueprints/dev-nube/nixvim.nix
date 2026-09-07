@@ -193,19 +193,6 @@ in
           enable = true;
         };
       };
-      keymaps = [
-        { mode = "n"; key = "<space>cl"; action = pkgs.lib.mkRaw "vim.lsp.codelens.run"; options.noremap = true; }
-        # Hoogle search for the type signature of the definition under the cursor
-        { mode = "n"; key = "<space>hs"; action = pkgs.lib.mkRaw "require('haskell-tools').hoogle.hoogle_signature"; options.noremap = true; }
-        # Evaluate all code snippets
-#        { mode = "n"; key = "<space>ea"; action = ""; options.noremap = true; }
-#        { mode = "n"; key = "<space>ea"; action = ht.lsp.buf_eval_all; options.noremap = true; }
-        # Toggle a GHCi repl for the current package
-#        { mode = "n"; key = "<leader>rr"; action = ht.repl.toggle; options.noremap = true; }
-        # Toggle a GHCi repl for the current buffer
-#        { mode = "n"; key = "<leader>rf"; action = _:ht.repl.toggle(vim.api.nvim_buf_get_name(0)); options.noremap = true }
-#        { mode = "n"; key = "<leader>rq"; action = ht.repl.quit; }
-      ];
     };
 
     # ---- CMP ---------------------------------------------------
