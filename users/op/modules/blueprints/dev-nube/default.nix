@@ -39,6 +39,9 @@
 
   environment.systemPackages = with pkgs; [
     claude-code
+    # Agent multiplexers, both terminal front ends over several coding agents at once.
+    herdr
+    paseo
     # Nix lsp and formatter
     nixd
     alejandra
