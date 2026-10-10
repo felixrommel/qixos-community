@@ -24,5 +24,6 @@
     paseo
     # The pi coding agent, whose binary is `pi`.
     pi-coding-agent
+    opencode
   ];
 }
