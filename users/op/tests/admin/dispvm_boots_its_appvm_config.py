@@ -33,7 +33,7 @@ echo "name=$(qubesdb-read /name 2>/dev/null)"
 echo "base=$(qubesdb-read /qubes-base-template 2>/dev/null)"
 echo "state=$state"
 echo "current=$(readlink -f /run/current-system)"
-echo "wanted=$(readlink -f /run/qixos/activation/%s/nixos)"
+echo "wanted=$(readlink -f /var/qixos/activation/%s/nixos)"
 """
 
 
