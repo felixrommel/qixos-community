@@ -123,6 +123,19 @@ From a dev nube. No commit is involved; the working tree goes over as it stands.
 ./to-test-admin demo     ship and apply the split password demo
 ```
 
+To run a qixos core change before it is pushed anywhere, name the checkout:
+
+```
+QIXCORE=~/qix-n-friends/qixos ./to-test-admin test
+```
+
+That working tree is shipped as well, uncommitted changes included, and on the admin each
+flake under `nubes/` has its `qixCore` input pointed at it. Nothing changes in this
+checkout, and the next push without `QIXCORE` puts the nubes back on the pin they are
+committed with. A template's `qixos.Switch` is the one its last switch installed, so a
+change to the switch itself takes two applies to show: the first installs it and the
+second runs it.
+
 On the admin:
 
 ```
