@@ -25,7 +25,58 @@
   let
     prefix = "test-oom-";
     adminName = "qixos-admin-test";
+
+    moderateAppVm = {
+      properties = {
+        label = "red";
+        netvm = "none";
+      };
+
+      localFlake = {
+        path = "./users/op/tests/nubes/smoke";
+        output = "qixosAppConfigurations.oomModerate";
+      };
+      deleteOnRemoval = true;
+    };
   in {
+    # The opposite case: a cluster that must not be killed. Four nubes that each fit in
+    # the template's memory and do not fit together, so the switch succeeds only if they
+    # are evaluated one at a time.
+    #
+    # A cluster of its own rather than more AppVMs on the one below, whose apply is
+    # meant to fail.
+    qixosConfigurations.sequenced = {
+      managementTag = "created-by-${adminName}";
+      baseTemplate = "${adminName}-base-template";
+
+      nubeClusters."${prefix}seq-template" = {
+        template = {
+          properties = {
+            label = "red";
+
+            # Between what one nube takes to evaluate, 1.0 GB, and what the template
+            # and all four take in a single evaluation, 4.2 GB, with the swap core
+            # gives every nube counted on top of this. See oomModerate in the smoke
+            # flake for where those numbers come from.
+            memory = 2000;
+
+            # Pinned, for the reason given on the cluster below.
+            maxmem = 0;
+          };
+
+          localFlake = {
+            path = "./users/op/tests/nubes/smoke";
+            output = "qixosTemplateConfigurations.smoke";
+          };
+        };
+
+        appVms."${prefix}seq-a" = moderateAppVm;
+        appVms."${prefix}seq-b" = moderateAppVm;
+        appVms."${prefix}seq-c" = moderateAppVm;
+        appVms."${prefix}seq-d" = moderateAppVm;
+      };
+    };
+
     qixosConfigurations.oom = {
       managementTag = "created-by-${adminName}";
       baseTemplate = "${adminName}-base-template";

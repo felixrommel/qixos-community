@@ -361,6 +361,7 @@ Nube tests, admin. Its own scenario because its apply is the thing under test, m
 killed part way.
 
 - `oom-switch-reports-oom` - an OOM-killed switch is reported as an OOM, not a generic nixos-rebuild failure. Unfinished: nothing provokes the kill yet, so it returns early saying so
+- `oom-heavy-cluster-switches-one-appvm-at-a-time` - a cluster whose four AppVMs each fit in the template's memory and do not fit together still switches, and every one of them is built. Its own cluster, `test-oom-seq-template`, since the one above is meant to fail
 
 ## Tests to write
 

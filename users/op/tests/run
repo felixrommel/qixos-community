@@ -329,6 +329,18 @@ SCENARIOS = [
                 "./users/op/tests/outer-configs/oom#oom",
                 "test-oom-template",
             )),
+
+            # The other side of the same budget: nubes that each fit and do not fit
+            # together, which a switch gets through only by building them one at a time.
+            ("oom-heavy-cluster-switches-one-appvm-at-a-time", lambda: admin_test(
+                "./users/op/tests/admin/heavy_cluster_switches_one_appvm_at_a_time.py",
+                "./users/op/tests/outer-configs/oom#sequenced",
+                "test-oom-seq-template",
+                "test-oom-seq-a",
+                "test-oom-seq-b",
+                "test-oom-seq-c",
+                "test-oom-seq-d",
+            )),
         ],
     ),
 ]
