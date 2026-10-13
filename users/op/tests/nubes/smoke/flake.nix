@@ -40,6 +40,21 @@
         };
       }
     ];
+
+    # A nube whose configuration is expensive to evaluate and costs nothing to build.
+    # Each `environment.etc` entry is a submodule, so the module system evaluates a full
+    # fixpoint per entry, and `enable = false` drops every one of them before anything is
+    # written. That leaves the evaluator's memory as the only thing that grows.
+    evaluationHeavy = entries: qixCore.lib.mkNubeApp {
+      modules = sharedModules ++ [
+        ({ lib, ... }: {
+          environment.etc = builtins.listToAttrs (builtins.genList (i: {
+            name = "qixos-oom-filler/${toString i}";
+            value = { enable = false; text = toString i; };
+          }) entries);
+        })
+      ];
+    };
   in
   {
     # The template runs sshd too, so the runner can read its host keys and check that
@@ -63,27 +78,19 @@
     # One nube whose configuration is expensive to evaluate, so a template with too
     # little memory is killed while evaluating it rather than thrashing for ten minutes.
     #
-    # The cost is deliberately in evaluation and not in building. Each `environment.etc`
-    # entry is a submodule, so the module system evaluates a full fixpoint per entry,
-    # and `enable = false` drops every one of them before anything is written. That
-    # leaves the evaluator's memory as the only thing that grows.
-    #
     # One heavy nube rather than many ordinary ones on purpose. A cluster's evaluation
     # cost is the sum of its nubes only while they are evaluated together; a single
     # nube's is irreducible, so this keeps provoking a kill even if nubes are later
     # built one at a time.
     #
     # ENTRIES wants tuning against a real run, the same way the template's memory does.
-    qixosAppConfigurations.oomHeavy = qixCore.lib.mkNubeApp {
-      modules = sharedModules ++ [
-        ({ lib, ... }: {
-          environment.etc = builtins.listToAttrs (builtins.genList (i: {
-            name = "qixos-oom-filler/${toString i}";
-            value = { enable = false; text = toString i; };
-          }) 20000);
-        })
-      ];
-    };
+    qixosAppConfigurations.oomHeavy = evaluationHeavy 20000;
+
+    # The other half: a nube that fits, several of which do not fit together. Evaluated
+    # by a nix of its own this one peaks at 1.0 GB, and a template with four of them in
+    # one evaluation at 4.2 GB, both measured with nix 2.34 against nixos-unstable. The
+    # sequenced cluster in outer-configs/oom sizes its template between the two.
+    qixosAppConfigurations.oomModerate = evaluationHeavy 10000;
 
     # In this flake rather than one of its own so it joins the smoke cluster: an AppVM
     # shares its template's store, and a separate flake would mean a second template to
