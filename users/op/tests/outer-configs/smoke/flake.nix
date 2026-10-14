@@ -197,5 +197,34 @@
     # deleting anything.
     qixosConfigurations.smokeWithoutDvm =
       withoutAppVms [ "${prefix}dvm" ];
+
+    # `smoke` plus one AppVM that cannot be built. Applied by
+    # `broken-appvm/one-broken-appvm-leaves-its-siblings-built`, and by nothing else. The
+    # next apply of `smoke` evicts it again.
+    qixosConfigurations.smokeWithBrokenAppVm =
+      let
+        base = self.qixosConfigurations.smoke;
+        clusterName = "${prefix}template";
+        cluster = base.nubeClusters.${clusterName};
+      in
+        base // {
+          nubeClusters = base.nubeClusters // {
+            ${clusterName} = cluster // {
+              appVms = cluster.appVms // {
+                "${prefix}broken" = {
+                  properties = {
+                    label = "red";
+                    netvm = "none";
+                  };
+                  localFlake = {
+                    path = "./users/op/tests/nubes/smoke";
+                    output = "qixosAppConfigurations.broken";
+                  };
+                  deleteOnRemoval = true;
+                };
+              };
+            };
+          };
+        };
   };
 }

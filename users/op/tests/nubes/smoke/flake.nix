@@ -86,6 +86,21 @@
     # ENTRIES wants tuning against a real run, the same way the template's memory does.
     qixosAppConfigurations.oomHeavy = evaluationHeavy 20000;
 
+    # A nube that cannot be built, so that a switch has one AppVM fail beside healthy ones.
+    # An assertion rather than a syntax error so the failure is the AppVM's own
+    # evaluation, which is where a broken inner config usually fails, and not something
+    # the whole flake would trip over.
+    qixosAppConfigurations.broken = qixCore.lib.mkNubeApp {
+      modules = sharedModules ++ [
+        {
+          assertions = [{
+            assertion = false;
+            message = "this nube is broken on purpose, by the smoke flake's `broken` output";
+          }];
+        }
+      ];
+    };
+
     # The other half: a nube that fits, several of which do not fit together. Evaluated
     # by a nix of its own this one peaks at 1.0 GB, and a template with four of them in
     # one evaluation at 4.2 GB, both measured with nix 2.34 against nixos-unstable. The
