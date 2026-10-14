@@ -323,6 +323,15 @@ line, so it runs last.
 
 - `dispvm-boots-its-appvm-config` - a disposable runs the configuration of the nube it was disposed from, not the template's, since its own generated name matches no config
 
+### broken-appvm
+
+Nube tests, admin. Its own scenario because it applies, and its apply is meant to fail.
+It applies `smoke` with one AppVM added that cannot be built, so it shares the smoke
+template rather than cloning one, and clears the template's built AppVMs first so that
+anything it finds afterwards was built by the switch under test.
+
+- `one-broken-appvm-leaves-its-siblings-built` - an AppVM that fails to build leaves its siblings built and itself unbuilt, instead of failing the whole cluster
+
 ### properties
 
 Nube tests, admin. Its own scenario because it applies, and because it removes the nube it
