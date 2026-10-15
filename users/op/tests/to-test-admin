@@ -20,10 +20,20 @@
 # Known gap: files are copied, never removed. Delete or rename something and its old name
 # lingers on the admin, where the build can still see it. Until this learns to prune,
 # check `git status` there after a rename.
+#
+# QIXCORE=<path to a qixos checkout> also ships that working tree, and points the test
+# nubes' `qixCore` input at it, so a change to qixos core can be run on the fleet before
+# it is pushed anywhere. A template cannot reach this nube or the admin, only what the
+# switch tars over to it, so the core travels inside the tree the nubes are built from:
+# it lands in $CORE_DIR at the root of the far side, and each flake under
+# users/op/tests/nubes names it by a relative path. Both the copy and the edit happen on
+# the admin only. Nothing in this checkout changes, and a push without QIXCORE puts the
+# flakes back to the pin they are committed with.
 set -uo pipefail
 
 ADMIN=qixos-admin-test.qube
 REMOTE=qixos-community
+CORE_DIR=qixos-core-under-test
 
 usage() {
   echo "usage: $(basename "$0") [push|demo|test] [--force]" >&2
@@ -37,6 +47,30 @@ case "$target" in
   push|demo|test) ;;
   *) usage ;;
 esac
+
+# One of these at a time, because nothing about the far side is per-run. The tree lands
+# in one fixed directory, the suite's qubes have one set of names, every scenario halts
+# every test-* qube before it starts, and the template is the memory bottleneck for all
+# of it. Two concurrent runs do not contend, they destroy each other.
+#
+# Taken here rather than left to the caller: an agent that forgets it takes the whole
+# suite down with it. Held through the run, not just the transfer, since the tree being
+# read is the one the lock is protecting.
+#
+# Known gap: the lock is local, so it only serializes callers on this nube. A second dev
+# nube driving the same admin needs it moved to the far side of the ssh.
+LOCK=/tmp/qixos-admin-test.lock
+if [ -z "${TO_TEST_ADMIN_LOCKED:-}" ]; then
+  flock -n "$LOCK" true || echo "$ADMIN is busy, waiting for it..." >&2
+  TO_TEST_ADMIN_LOCKED=1 exec flock "$LOCK" "$0" "$@"
+fi
+
+if [ -n "${QIXCORE:-}" ]; then
+  QIXCORE=$(git -C "$QIXCORE" rev-parse --show-toplevel) || {
+    echo "QIXCORE is not a git checkout: $QIXCORE" >&2
+    exit 1
+  }
+fi
 
 cd "$(dirname "$0")/../../.." || exit 1
 
@@ -69,8 +103,59 @@ if ! git ls-files -co --exclude-standard -z |
   exit 1
 fi
 
-if ! ssh_admin "cd $REMOTE && git add -A users/op"; then
-  echo "could not stage the transferred tree on $ADMIN" >&2
+if [ -n "${QIXCORE:-}" ]; then
+  echo "sending qixos core from $QIXCORE to $ADMIN..."
+  # Emptied first, unlike the tree above, since a module deleted from core and still
+  # lying there would be picked up by an import of its directory.
+  if ! git -C "$QIXCORE" ls-files -co --exclude-standard -z |
+    tar -C "$QIXCORE" --null -T - -cf - |
+    ssh_admin "rm -rf $REMOTE/$CORE_DIR && mkdir $REMOTE/$CORE_DIR && tar -xf - -C $REMOTE/$CORE_DIR"; then
+    echo "core transfer failed" >&2
+    exit 1
+  fi
+
+  # Five levels up from users/op/tests/nubes/<name> is the root, where the core now is.
+  # Each lock is redone here because it pins the url this replaces, and staged before
+  # that because nix reads the tree through git and would not see the core otherwise.
+  if ! ssh_admin "set -e
+    cd $REMOTE
+    sed -i 's|url = \"git+https://github.com/originalposter/qixos?[^\"]*\";|url = \"path:../../../../../$CORE_DIR\";|' users/op/tests/nubes/*/flake.nix
+    git add -A
+    for nube in users/op/tests/nubes/*/; do
+      grep -q 'path:../../../../../$CORE_DIR' \"\$nube/flake.nix\" || continue
+      nix flake update qixCore --flake \"./\$nube\"
+    done"; then
+    echo "could not point the test nubes at the shipped core on $ADMIN" >&2
+    exit 1
+  fi
+fi
+
+# Commit what landed, so the tree is clean again and the dirty check above keeps meaning
+# what it says. A push that only staged left the admin dirty, which made the next push
+# refuse, which taught everyone to pass --force and retired the guard.
+#
+# Amended rather than appended, so there is one of these however many times this runs.
+# The subject and the author both say what it is: nothing here is meant to be kept, and
+# nothing reviews or pushes from the admin. Committing is a superset of the staging the
+# flake needs, since a file git does not know about does not exist to the build either way.
+#
+# Only what `git add -A users/op` staged. Something changed outside that path stays dirty
+# and trips the guard on the next run, which is the guard working rather than failing.
+TRANSIENT="DO NOT KEEP: working tree pushed by to-test-admin"
+
+if ! ssh_admin "set -e
+  cd $REMOTE
+  git add -A users/op
+  if git diff --cached --quiet; then exit 0; fi
+  GIT_AUTHOR_NAME=to-test-admin GIT_AUTHOR_EMAIL=to-test-admin@invalid
+  GIT_COMMITTER_NAME=to-test-admin GIT_COMMITTER_EMAIL=to-test-admin@invalid
+  export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+  if [ \"\$(git log -1 --format=%s 2>/dev/null)\" = '$TRANSIENT' ]; then
+    git commit --amend --no-edit --quiet
+  else
+    git commit --quiet -m '$TRANSIENT'
+  fi"; then
+  echo "could not commit the transferred tree on $ADMIN" >&2
   exit 1
 fi
 

@@ -244,6 +244,28 @@ SCENARIOS = [
         ],
     ),
 
+    # Its own scenario because it applies, and its apply is meant to fail. Applies smoke
+    # plus one AppVM that does not build, so it reuses the smoke template rather than
+    # cloning another, and the next scenario's apply of smoke evicts that AppVM again.
+    Scenario(
+        name="broken-appvm",
+        setup=None,
+        tests=[
+            ("one-broken-appvm-leaves-its-siblings-built", lambda: admin_test(
+                "./users/op/tests/admin/one_broken_appvm_leaves_its_siblings_built.py",
+                "./users/op/tests/outer-configs/smoke#smokeWithBrokenAppVm",
+                "test-smoke-template",
+                "test-smoke-broken",
+                "test-smoke-nube",
+                "test-smoke-dvm",
+                "test-smoke-password",
+                "test-smoke-gpg",
+                "test-smoke-ssh-a",
+                "test-smoke-ssh-b",
+            )),
+        ],
+    ),
+
     # Its own scenario because it applies: it reconciles the smoke config itself and
     # then removes the nube it asserted on, which would take that nube out from under
     # anything sharing a fleet with it.
@@ -328,6 +350,18 @@ SCENARIOS = [
                 "./users/op/tests/admin/oomed_switch_reports_oom.py",
                 "./users/op/tests/outer-configs/oom#oom",
                 "test-oom-template",
+            )),
+
+            # The other side of the same budget: nubes that each fit and do not fit
+            # together, which a switch gets through only by building them one at a time.
+            ("oom-heavy-cluster-switches-one-appvm-at-a-time", lambda: admin_test(
+                "./users/op/tests/admin/heavy_cluster_switches_one_appvm_at_a_time.py",
+                "./users/op/tests/outer-configs/oom#sequenced",
+                "test-oom-seq-template",
+                "test-oom-seq-a",
+                "test-oom-seq-b",
+                "test-oom-seq-c",
+                "test-oom-seq-d",
             )),
         ],
     ),

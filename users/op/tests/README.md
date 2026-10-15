@@ -123,6 +123,19 @@ From a dev nube. No commit is involved; the working tree goes over as it stands.
 ./to-test-admin demo     ship and apply the split password demo
 ```
 
+To run a qixos core change before it is pushed anywhere, name the checkout:
+
+```
+QIXCORE=~/qix-n-friends/qixos ./to-test-admin test
+```
+
+That working tree is shipped as well, uncommitted changes included, and on the admin each
+flake under `nubes/` has its `qixCore` input pointed at it. Nothing changes in this
+checkout, and the next push without `QIXCORE` puts the nubes back on the pin they are
+committed with. A template's `qixos.Switch` is the one its last switch installed, so a
+change to the switch itself takes two applies to show: the first installs it and the
+second runs it.
+
 On the admin:
 
 ```
@@ -310,6 +323,15 @@ line, so it runs last.
 
 - `dispvm-boots-its-appvm-config` - a disposable runs the configuration of the nube it was disposed from, not the template's, since its own generated name matches no config
 
+### broken-appvm
+
+Nube tests, admin. Its own scenario because it applies, and its apply is meant to fail.
+It applies `smoke` with one AppVM added that cannot be built, so it shares the smoke
+template rather than cloning one, and clears the template's built AppVMs first so that
+anything it finds afterwards was built by the switch under test.
+
+- `one-broken-appvm-leaves-its-siblings-built` - an AppVM that fails to build leaves its siblings built and itself unbuilt, instead of failing the whole cluster
+
 ### properties
 
 Nube tests, admin. Its own scenario because it applies, and because it removes the nube it
@@ -348,6 +370,7 @@ Nube tests, admin. Its own scenario because its apply is the thing under test, m
 killed part way.
 
 - `oom-switch-reports-oom` - an OOM-killed switch is reported as an OOM, not a generic nixos-rebuild failure. Unfinished: nothing provokes the kill yet, so it returns early saying so
+- `oom-heavy-cluster-switches-one-appvm-at-a-time` - a cluster whose four AppVMs each fit in the template's memory and do not fit together still switches, and every one of them is built. Its own cluster, `test-oom-seq-template`, since the one above is meant to fail
 
 ## Tests to write
 
