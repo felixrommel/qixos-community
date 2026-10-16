@@ -106,6 +106,17 @@
           };
         };
 
+        appVms."${prefix}review${suffix}" = {
+          properties = {
+            label = "gray";
+          };
+
+          remoteFlake = {
+            url = "git+https://github.com/originalposter/qixos-community?ref=unstable&dir=users/op/nubes/appvms/review-nube";
+            output = "qixosAppConfigurations.default";
+          };
+        };
+
       };
 
       # Cluster for handling secrets

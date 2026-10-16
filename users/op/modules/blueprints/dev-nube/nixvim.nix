@@ -253,6 +253,22 @@ in
 
   }; # end plugins
 
+  # ---- PLUGINS WITHOUT A NIXVIM MODULE --------------------------
+  # review.nvim is not in nixpkgs.
+  extraPlugins = [
+    (pkgs.vimUtils.buildVimPlugin {
+      pname = "review.nvim";
+      version = "1.12.0";
+      src = pkgs.fetchFromGitHub {
+        owner = "georgeguimaraes";
+        repo = "review.nvim";
+        rev = "v1.12.0";
+        hash = "sha256-Rjqbcp7LS/LD2D3sctJrMytbYeO1fjtArQBAxo0g0L4=";
+      };
+      dependencies = with pkgs.vimPlugins; [ codediff-nvim nui-nvim ];
+    })
+  ];
+
   # ---- EXTRA PACKAGES IN PATH ----------------------------------
   # These get added to nvim's runtime PATH.
   # codelldb is inside the lldb package on nixpkgs.
@@ -287,6 +303,15 @@ in
     { mode = "n"; key = "<leader>g";  action = ":G<CR>";          options.desc = "Git status (fugitive)"; }
     { mode = "n"; key = "<leader>gd"; action = ":Gdiffsplit<CR>"; options.desc = "Git diff split"; }
     { mode = "n"; key = "<leader>gb"; action = ":Git blame<CR>";  options.desc = "Git blame"; }
+
+    # review.nvim
+    { mode = "n";        key = "<leader>rr"; action = ":Review<CR>";         options.desc = "Review working tree"; }
+    { mode = "n";        key = "<leader>rc"; action = ":Review commits<CR>"; options.desc = "Review commits"; }
+    { mode = "n";        key = "<leader>rb"; action = ":Review branch<CR>";  options.desc = "Review branch"; }
+    { mode = ["n" "v"];  key = "<leader>rn"; action = ":Review note<CR>";    options.desc = "Review: note here"; }
+    { mode = "n";        key = "<leader>re"; action = ":Review edit<CR>";    options.desc = "Review: edit comment"; }
+    { mode = "n";        key = "<leader>rd"; action = ":Review delete<CR>";  options.desc = "Review: delete comment"; }
+    { mode = "n";        key = "<leader>rx"; action = ":Review export<CR>";  options.desc = "Review: export comments"; }
 
     # General
     { mode = "n";        key = "co";           action = "zf%";          options.noremap = true; }
@@ -375,6 +400,8 @@ in
   # the stateful CursorHold diagnostic handler, and toggle keymaps.
 
   extraConfigLua = ''
+    require("review").setup({})
+
     -- Make git root cwd
     vim.api.nvim_create_autocmd("BufEnter", {
       callback = function()
