@@ -17,6 +17,10 @@
   {
     qixosAppConfigurations.default = qixCore.lib.mkNubeApp {
       modules = [
+        # Each qube reaching this Forgejo needs a dom0 policy line, in a file under
+        # /etc/qubes/policy.d/, one per client qube:
+        #
+        #   qubes.ConnectTCP +3000 qixos-dev-nube review-nube allow
         opQixCommunity.nixosModules.modules.blueprints.forgejo
         {
           # git ignores a bare repo it only found by searching, so one committed inside a
