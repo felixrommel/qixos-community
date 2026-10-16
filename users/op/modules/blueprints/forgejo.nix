@@ -64,6 +64,10 @@ in
     ProtectHome = lib.mkForce "tmpfs";
     BindPaths = [ cfg.stateDir ];
   };
+  # With /home a tmpfs and the state directory bound back in, every ReadWritePaths entry
+  # has to exist or the unit fails with 226/NAMESPACE. The module lists the LFS directory
+  # there but creates it only when LFS is on.
+  systemd.tmpfiles.rules = [ "d '${cfg.lfs.contentDir}' 0750 ${cfg.user} ${cfg.group} - -" ];
 
   # qubes-mount-dirs mounts /home after systemd-tmpfiles has run at boot, so the
   # directories the forgejo module's tmpfiles rules create under it land on the root
