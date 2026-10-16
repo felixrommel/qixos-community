@@ -50,6 +50,9 @@ in
         REQUIRE_SIGNIN_VIEW = true;
       };
       repository.DEFAULT_PRIVATE = "private";
+      # Forgejo runs git from inside its bare repos, which a system-wide
+      # safe.bareRepository = explicit would refuse.
+      "git.config"."safe.bareRepository" = "all";
       mailer.ENABLED = false;
       "cron.update_checker".ENABLED = false;
     };
