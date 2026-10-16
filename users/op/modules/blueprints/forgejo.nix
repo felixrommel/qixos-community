@@ -4,11 +4,14 @@
 # TODO: make these `setup.steps` once the setup module exists.
 #
 #   forgejo-admin admin user create --admin --username <admin> --email <admin>@localhost --random-password
-#   forgejo-admin admin user create --username <name> --email <name>@localhost --random-password
+#   forgejo-admin admin user create --username <name> --email <name>@localhost --random-password \
+#     --must-change-password=false
 #   forgejo-admin admin user generate-access-token --username <name> --token-name <token> \
 #     --scopes write:repository,write:issue,read:user
 #
-# read:user is for clients such as tea, which check a token by reading its owner's profile.
+# An account used only through its token never changes its password, and until it does
+# Forgejo refuses its API calls. read:user is for clients such as tea, which check a token
+# by reading its owner's profile.
 { pkgs, lib, config, ... }:
 let
   cfg = config.services.forgejo;
