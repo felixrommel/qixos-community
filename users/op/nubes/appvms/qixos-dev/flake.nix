@@ -53,6 +53,13 @@
           };
         }
 
+        opQixCommunity.nixosModules.modules.qubes-tcp-forward
+        {
+          # TODO: take the qube name as an argument from the realm config, once inner
+          # configs can be given arguments.
+          qubesTcpForward.forgejo = { qube = "review-nube"; port = 3000; };
+        }
+
         opQixCommunity.nixosModules.modules.evq.packages.qubes-gpg-split.client
         {
           qubes.gpgSplitClient = {
