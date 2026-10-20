@@ -293,12 +293,6 @@ in
     { mode = "n"; key = "K"; action = ":FzfLua buffers<CR>";   options.noremap = true; }
     { mode = "n"; key = "H"; action = ":FzfLua live_grep<CR>"; options.noremap = true; }
 
-    # LSP (non-closure ones)
-    { mode = "n"; key = "L";   action = mkRaw "vim.lsp.buf.hover";       options.desc = "LSP hover docs"; }
-    { mode = "n"; key = ";n";  action = mkRaw "vim.lsp.buf.rename";      options.desc = "LSP rename"; }
-    { mode = "n"; key = ";a";  action = mkRaw "vim.lsp.buf.code_action"; options.desc = "LSP code action"; }
-    { mode = "n"; key = ";f";  action = mkRaw "vim.lsp.buf.format";      options.desc = "LSP format"; }
-
     # Aerial
     { mode = "n"; key = "<A-t>"; action = ":AerialToggle<CR>"; options.noremap = true; }
 
@@ -341,9 +335,6 @@ in
 
   # ---- AUTOCOMMANDS --------------------------------------------
   autoCmd = [
-    # Hover diagnostics (show once per cursor position, not repeatedly)
-    # Can't express the stateful last_pos logic here - goes in extraConfigLua.
-
     # Lua filetype indent
     {
       event = "FileType";
@@ -354,21 +345,6 @@ in
           vim.bo.shiftwidth  = 4
           vim.bo.tabstop     = 4
           vim.bo.softtabstop = 4
-        end
-      '';
-    }
-
-    # CD to LSP root on attach
-    {
-      event = "LspAttach";
-      callback = mkRaw ''
-        function(args)
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-          local root_dir = client and client.config and client.config.root_dir
-          if root_dir then
-            vim.cmd("cd " .. vim.fn.fnameescape(root_dir))
-            print("cwd set to LSP root: " .. root_dir)
-          end
         end
       '';
     }
@@ -401,8 +377,7 @@ in
 
   # ---- EXTRA LUA -----------------------------------------------
   # Stuff that genuinely needs Lua closures and can't be expressed
-  # as Nix attrs: jump stack, flash keymaps, DAP full config,
-  # the stateful CursorHold diagnostic handler, and toggle keymaps.
+  # as Nix attrs: flash keymaps, DAP full config, and toggle keymaps.
 
   extraConfigLua = ''
     require("review").setup({})
@@ -416,56 +391,6 @@ in
         end
       end,
     })
-    -- ============================================================
-    -- CURSOR HOLD DIAGNOSTICS
-    -- Show hover diagnostic once per position, not on every tick.
-    -- ============================================================
-    local _last_diag_pos = nil
-    vim.api.nvim_create_autocmd("CursorHold", {
-      callback = function()
-        local pos = vim.api.nvim_win_get_cursor(0)
-        local key = vim.api.nvim_buf_get_name(0) .. ":" .. pos[1] .. ":" .. pos[2]
-        if key ~= _last_diag_pos then
-          vim.diagnostic.open_float(nil, { scope = "cursor", focusable = false })
-          _last_diag_pos = key
-        end
-      end,
-    })
-
-    -- ============================================================
-    -- JUMP STACK
-    -- ============================================================
-    local jumpstack = {}
-
-    local function mark_jump()
-      local pos = vim.api.nvim_win_get_cursor(0)
-      local buf = vim.api.nvim_get_current_buf()
-      table.insert(jumpstack, { buf = buf, pos = pos })
-    end
-
-    local function jump_back()
-      local last = table.remove(jumpstack)
-      if last then
-        vim.api.nvim_set_current_buf(last.buf)
-        vim.api.nvim_win_set_cursor(0, last.pos)
-      else
-        vim.notify("Jump stack empty", vim.log.levels.WARN)
-      end
-    end
-
-    -- LSP keymaps that need closures
-    vim.keymap.set("n", "<leader>j", function()
-      mark_jump()
-      vim.lsp.buf.definition()
-    end, { desc = "LSP: Go to definition with stack" })
-
-    vim.keymap.set("n", "<leader>b", jump_back, { desc = "Jump back" })
-
-    vim.keymap.set("n", ";r", function()
-      mark_jump()
-      require('fzf-lua').lsp_references()
-    end, { desc = "LSP references" })
-
     -- Toggle relative number
     vim.keymap.set("n", "<leader>m", function()
       vim.wo.relativenumber = not vim.wo.relativenumber

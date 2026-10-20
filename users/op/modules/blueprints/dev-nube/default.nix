@@ -9,8 +9,8 @@
 #     inherit home-manager nixvim;
 #   })
 #
-# LLM tooling lives in the llm-tools blueprint, imported alongside this one by the
-# nubes that want it.
+# LLM tooling lives in the llm-tools blueprint and language servers in the dev-lsp
+# module, each imported alongside this one by the nubes that want it.
 #
 # The home-manager layer here is op's personal configuration (git identity, nixvim,
 # shell). Anything wanting the tooling without the personal layer should take the
@@ -35,8 +35,7 @@
   };
 
   environment.systemPackages = with pkgs; [
-    # Nix lsp and formatter
-    nixd
+    # Nix formatter. nixd, the nix language server, is in the dev-lsp module.
     alejandra
     age
     wget
