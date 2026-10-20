@@ -24,6 +24,8 @@
     paseo
     # The pi coding agent, whose binary is `pi`.
     pi-coding-agent
+    # oh-my-pi, from can1357/oh-my-pi, whose binary is `omp`.
+    omp
     opencode
   ];
 }
