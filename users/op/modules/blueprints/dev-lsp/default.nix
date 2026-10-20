@@ -43,6 +43,17 @@ in
 
           nixd.enable = true;
           bashls.enable = true;
+
+          # Haskell. Its ghc comes from the blueprint, as rust_analyzer's cargo does.
+          hls = {
+            enable = true;
+            installGhc = false;
+          };
+
+          ocamllsp.enable = true;
+
+          idris2_lsp.enable = true;
+          zls.enable = true;
         };
       };
 
@@ -81,6 +92,11 @@ in
           ];
         };
       };
+
+      # lean.nvim rather than a server above, because lspconfig only describes lean3ls
+      # and Lean 3 is obsolete. It starts and owns the Lean 4 server, which runs lake,
+      # which runs a project's lakefile.
+      lean.enable = true;
 
       # cmp source for LSP
       cmp-nvim-lsp.enable = true;
@@ -171,5 +187,9 @@ in
   # it will not load is diagnosed.
   environment.systemPackages = with pkgs; [
     nixd
+    haskell-language-server
+    ocamlPackages.ocaml-lsp
+    idris2Packages.idris2Lsp
+    zls
   ];
 }
