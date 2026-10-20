@@ -38,6 +38,7 @@
         (opQixCommunity.nixosModules.modules.blueprints.dev-nube {
           inherit home-manager nixvim opQixCommunity;
         })
+        opQixCommunity.nixosModules.modules.blueprints.dev-lsp
 
         opQixCommunity.nixosModules.modules.blueprints.basic-template
       ];
