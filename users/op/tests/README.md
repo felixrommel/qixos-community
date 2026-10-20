@@ -57,8 +57,9 @@ Four invariants hold this together:
   ones behind tests that are red on purpose until the bug they describe is fixed.
 - **A nube is rebooted before its tests run.** An AppVM takes its config and its root
   volume at boot, so one that was already up when the template switched carries neither.
-- **The runner waits only for ssh.** What else a nube needs depends on its tests, so each
-  waits for its own preconditions. A nube answers ssh well before it has an X server.
+- **The runner waits for ssh and for an AppVM's switch to its own configuration.** What
+  else a nube needs depends on its tests, so each waits for its own preconditions. A nube
+  answers ssh well before it has an X server.
 
 Where a new test goes depends on whether apply is part of what it tests. If it is, the test
 owns the apply and gets a scenario of its own with no setup, because running apply

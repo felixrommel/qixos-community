@@ -129,6 +129,22 @@ def nube_tests(vm):
     if not harness.boot(vm):
         return False
 
+    # Wait for the AppVM's switch to its own configuration to finish, which ssh being up
+    # does not mean. Finished is `active` or `failed`. A template has no switch.
+    unit = "qixos-appvm-switch.service"
+    switched = (
+        "test -e /run/qubes/this-is-templatevm || "
+        f"systemctl show -p ActiveState --value {unit} | grep -qx -e active -e failed"
+    )
+    if not harness.wait_for(vm, switched, "the switch to its own configuration to finish"):
+        return False
+    if harness.ssh(vm, f"systemctl is-failed --quiet {unit}").returncode == 0:
+        log = harness.ssh(vm, f"journalctl -b -u {unit} --no-pager -o cat | tail -n 5")
+        print(f"{vm}: its switch to its own configuration failed:", file=sys.stderr)
+        for line in log.stdout.splitlines():
+            print(f"  {line}", file=sys.stderr)
+        return False
+
     # Ask what it has before running anything. A nube that dies partway through
     # otherwise reports a handful of passes and looks green.
     listing = harness.ssh(vm, "run-tests", "--list")
