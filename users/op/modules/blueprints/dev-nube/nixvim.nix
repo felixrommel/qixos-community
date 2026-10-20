@@ -153,6 +153,7 @@ in
       };
       grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
         lua python rust javascript typescript c go svelte html css
+        haskell ocaml idris zig
       ];
     };
 
