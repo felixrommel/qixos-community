@@ -4,6 +4,18 @@
   '';
 
   inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixvim = {
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     opQixCommunity = {
       url = "path:../../../";
     };
@@ -13,7 +25,7 @@
     };
   };
 
-  outputs = { self, opQixCommunity, qixCore, ... }:
+  outputs = { self, home-manager, nixvim, opQixCommunity, qixCore, ... }:
   {
     qixosAppConfigurations.default = qixCore.lib.mkNubeApp {
       modules = [
@@ -30,6 +42,11 @@
             config.safe.bareRepository = "explicit";
           };
         }
+        (opQixCommunity.nixosModules.modules.blueprints.dev-nube {
+          inherit home-manager nixvim opQixCommunity;
+        })
+        opQixCommunity.nixosModules.modules.blueprints.dev-lsp
+
         opQixCommunity.nixosModules.modules.blueprints.basic-template
       ];
     };
