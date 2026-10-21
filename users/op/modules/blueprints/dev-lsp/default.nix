@@ -184,12 +184,13 @@ in
   };
 
   # Here as well as behind nixvim so a server can be run by hand, which is how a project
-  # it will not load is diagnosed.
-  environment.systemPackages = with pkgs; [
-    nixd
-    haskell-language-server
-    ocamlPackages.ocaml-lsp
-    idris2Packages.idris2Lsp
-    zls
-  ];
+  # it will not load is diagnosed. Every enabled server, taken from nixvim's own option so
+  # it is the package nvim runs. Named one by one: iterating nixvim's servers touches the
+  # options it has removed, which throw. Lean's comes with the blueprint's lean4.
+  environment.systemPackages =
+    let servers = config.home-manager.users.user.programs.nixvim.plugins.lsp.servers;
+    in map (name: servers.${name}.package) [
+      "pyright" "ts_ls" "rust_analyzer" "svelte" "nixd" "bashls"
+      "hls" "ocamllsp" "idris2_lsp" "zls"
+    ];
 }
