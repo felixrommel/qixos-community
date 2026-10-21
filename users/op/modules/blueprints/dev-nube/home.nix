@@ -27,10 +27,8 @@
     settings = {
       user.name = "op";
       user.email = "op@qixos.org";
-      extraConfig = {
-        init.defaultBranch = "master";
-        pull.rebase = true;
-      };
+      init.defaultBranch = "master";
+      pull.rebase = true;
       alias = {
         gr = "log --oneline --graph --decorate";
         gra = "log --oneline --graph --decorate --all";
