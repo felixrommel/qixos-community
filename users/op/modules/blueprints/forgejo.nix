@@ -1,5 +1,5 @@
-# Forgejo for a qube with no network (netvm = "none"). Clients reach it on port 3000
-# through ../qubes-tcp-forward.nix, at http://localhost:3000, which is its ROOT_URL.
+# Forgejo for a qube with no network (netvm = "none"). Clients reach it through
+# ../qubes-tcp-forward.nix: http://localhost:3000, its ROOT_URL, and ssh on port 2222.
 #
 # TODO: make these `setup.steps` once the setup module exists.
 #
@@ -43,8 +43,14 @@ in
         HTTP_PORT = 3000;
         DOMAIN = "localhost";
         ROOT_URL = "http://localhost:3000/";
-        # Git over HTTP with access tokens.
-        DISABLE_SSH = true;
+        # Git over HTTP with access tokens, or over ssh with a key added to the account.
+        # Forgejo's own ssh server, so the qube runs no sshd.
+        START_SSH_SERVER = true;
+        SSH_LISTEN_HOST = "127.0.0.1";
+        SSH_LISTEN_PORT = 2222;
+        SSH_PORT = 2222;
+        SSH_DOMAIN = "localhost";
+        BUILTIN_SSH_SERVER_USER = "git";
         # No netvm, so no avatars, CDNs or update checks to reach for.
         OFFLINE_MODE = true;
       };
