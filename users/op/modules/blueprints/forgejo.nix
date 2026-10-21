@@ -9,9 +9,8 @@
 #   forgejo-admin admin user generate-access-token --username <name> --token-name <token> \
 #     --scopes write:repository,write:issue,read:user
 #
-# An account used only through its token never changes its password, and until it does
-# Forgejo refuses its API calls. read:user is for clients such as tea, which check a token
-# by reading its owner's profile.
+# --must-change-password=false: Forgejo refuses API calls from an account that still has to
+# change its password. read:user lets clients such as tea check a token.
 { pkgs, lib, config, ... }:
 let
   cfg = config.services.forgejo;
@@ -43,7 +42,6 @@ in
         HTTP_PORT = 3000;
         DOMAIN = "localhost";
         ROOT_URL = "http://localhost:3000/";
-        # Git over HTTP with access tokens, or over ssh with a key added to the account.
         # Forgejo's own ssh server, so the qube runs no sshd.
         START_SSH_SERVER = true;
         SSH_LISTEN_HOST = "127.0.0.1";
@@ -73,9 +71,8 @@ in
     ProtectHome = lib.mkForce "tmpfs";
     BindPaths = [ cfg.stateDir ];
   };
-  # With /home a tmpfs and the state directory bound back in, every ReadWritePaths entry
-  # has to exist or the unit fails with 226/NAMESPACE. The module lists the LFS directory
-  # there but creates it only when LFS is on.
+  # Every ReadWritePaths entry must exist under this sandbox (226/NAMESPACE otherwise), and
+  # the module lists the LFS directory without creating it while LFS is off.
   systemd.tmpfiles.rules = [ "d '${cfg.lfs.contentDir}' 0750 ${cfg.user} ${cfg.group} - -" ];
 
   # qubes-mount-dirs mounts /home after systemd-tmpfiles has run at boot, so the
