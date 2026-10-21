@@ -19,6 +19,9 @@ SHUTDOWN_DEADLINE = 120
 # Long enough for a disposable to be created, boot, and reach its switch job.
 DISPVM_DEADLINE = 300
 
+# Long enough for an AppVM's switch to its own closure, which starts after ssh is up.
+SWITCH_DEADLINE = 600
+
 # Long enough for a template's volumes to settle after it stops. An AppVM's root is a
 # snapshot of its template's, and qvm-check reports a template down before qubes has
 # finished committing that volume, so an AppVM starting in the gap is told the snapshot
@@ -53,6 +56,20 @@ def ssh(vm, *command):
         ["ssh", *SSH_OPTS, f"{vm}.qube", *command],
         capture_output=True, text=True,
     )
+
+
+def wait_for(vm, command, what, deadline_seconds=SWITCH_DEADLINE):
+    """Block until `command` exits zero in the nube, or give up. `what` names it for the
+    timeout message."""
+    deadline = time.monotonic() + deadline_seconds
+
+    while time.monotonic() < deadline:
+        if ssh(vm, command).returncode == 0:
+            return True
+        time.sleep(2)
+
+    print(f"{vm}: waited {deadline_seconds}s for {what}", file=sys.stderr)
+    return False
 
 
 def wait_for_ssh(vm):

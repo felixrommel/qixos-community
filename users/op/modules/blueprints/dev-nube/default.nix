@@ -2,17 +2,20 @@
 # environment.
 #
 # A function of the flake inputs it needs rather than a plain module, because
-# home-manager, nixvim and the claude-code overlay all come from flake inputs and a
-# module has no way to reach them. Call it from a flake's outputs:
+# home-manager and nixvim both come from flake inputs and a module has no way to
+# reach them. Call it from a flake's outputs:
 #
 #   (opQixCommunity.nixosModules.modules.blueprints.dev-nube {
-#     inherit home-manager nixvim claude-code-third-party;
+#     inherit home-manager nixvim;
 #   })
+#
+# LLM tooling lives in the llm-tools blueprint and language servers in the dev-lsp
+# module, each imported alongside this one by the nubes that want it.
 #
 # The home-manager layer here is op's personal configuration (git identity, nixvim,
 # shell). Anything wanting the tooling without the personal layer should take the
 # system-level parts and leave `home-manager.users` alone.
-{ home-manager, nixvim, claude-code-third-party, opQixCommunity }:
+{ home-manager, nixvim, opQixCommunity }:
 { lib, pkgs, ... }:
 {
   imports = [
@@ -31,17 +34,23 @@
     users.user.imports = [ ./home.nix ];
   };
 
-  nixpkgs.overlays = [ claude-code-third-party.overlays.default ];
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-    "claude-code"
-  ];
+  # The qubes agent leaves /etc/localtime dangling on NixOS, which crashes Lean's server.
+  # TODO: fix this in core and drop it here. Whether a nube should see dom0's zone at all
+  # is open, since passing it through leaks the host's time zone.
+  time.timeZone = lib.mkDefault "UTC";
 
   environment.systemPackages = with pkgs; [
-    claude-code
-    # Nix lsp and formatter
-    nixd
+    # Nix formatter. nixd, the nix language server, is in the dev-lsp module.
     alejandra
+    # Compilers. Their language servers are in dev-lsp.
+    ghc
+    cabal-install
+    ocaml
+    dune_3
+    ocamlformat
+    idris2
+    lean4
+    zig
     age
     wget
     home-manager.packages.${pkgs.stdenv.hostPlatform.system}.home-manager

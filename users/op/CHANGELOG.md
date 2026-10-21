@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Language servers and LLM agents are separate from the dev-nube blueprint
+Import `blueprints.dev-lsp` and `blueprints.llm-tools` beside it; the agents' nube is now
+`nubes/appvms/dev-llm-nube`. Adds Haskell, OCaml, Idris, Lean and Zig, and the agents
+herdr, paseo, pi, opencode and oh-my-pi. A template building a dev nube with both needs
+`volumes.root` above the 30 GiB default.
+
 ## v0.2.0
 
 ### A test suite for QixOS itself

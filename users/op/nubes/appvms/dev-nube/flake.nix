@@ -17,11 +17,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    claude-code-third-party = {
-      url = "github:sadjow/claude-code-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     opQixCommunity = {
       url = "path:../../../";
     };
@@ -32,7 +27,7 @@
 
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, claude-code-third-party, opQixCommunity, qixCore, ... }:
+  outputs = { self, nixpkgs, home-manager, nixvim, opQixCommunity, qixCore, ... }:
   {
     qixosAppConfigurations.default = qixCore.lib.mkNubeApp {
       directBuild = {
@@ -41,8 +36,9 @@
 
       modules = [
         (opQixCommunity.nixosModules.modules.blueprints.dev-nube {
-          inherit home-manager nixvim claude-code-third-party opQixCommunity;
+          inherit home-manager nixvim opQixCommunity;
         })
+        opQixCommunity.nixosModules.modules.blueprints.dev-lsp
 
         opQixCommunity.nixosModules.modules.blueprints.basic-template
       ];
