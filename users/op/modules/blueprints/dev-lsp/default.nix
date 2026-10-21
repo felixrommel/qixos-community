@@ -44,7 +44,7 @@ in
           nixd.enable = true;
           bashls.enable = true;
 
-          # Haskell. Its ghc comes from the blueprint, as rust_analyzer's cargo does.
+          # Haskell, with the blueprint's ghc.
           hls = {
             enable = true;
             installGhc = false;
@@ -93,9 +93,7 @@ in
         };
       };
 
-      # lean.nvim rather than a server above, because lspconfig only describes lean3ls
-      # and Lean 3 is obsolete. It starts and owns the Lean 4 server, which runs lake,
-      # which runs a project's lakefile.
+      # Lean 4's server, started through lake, so it runs the project's lakefile.
       lean.enable = true;
 
       # cmp source for LSP
@@ -128,8 +126,7 @@ in
       }
     ];
 
-    # Closures the keymaps above cannot express. The jump stack serves only the lsp
-    # jumps, so it lives here with them.
+    # Keymaps that need Lua closures.
     extraConfigLua = ''
       -- ============================================================
       -- CURSOR HOLD DIAGNOSTICS
@@ -183,10 +180,8 @@ in
     '';
   };
 
-  # Here as well as behind nixvim so a server can be run by hand, which is how a project
-  # it will not load is diagnosed. Every enabled server, taken from nixvim's own option so
-  # it is the package nvim runs. Named one by one: iterating nixvim's servers touches the
-  # options it has removed, which throw. Lean's comes with the blueprint's lean4.
+  # Every server above, also on PATH, to run it by hand; keep the names in step. Lean's
+  # comes with the blueprint's lean4.
   environment.systemPackages =
     let servers = config.home-manager.users.user.programs.nixvim.plugins.lsp.servers;
     in map (name: servers.${name}.package) [

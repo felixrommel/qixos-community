@@ -34,17 +34,15 @@
     users.user.imports = [ ./home.nix ];
   };
 
-  # The qubes agent points /etc/localtime at a Fedora path NixOS lacks, so it dangles,
-  # and Lean's language server exits 1 over it. Setting a zone makes NixOS write a real
-  # one. TODO: fix this in core and drop it here. Whether a nube should see dom0's zone at all
+  # The qubes agent leaves /etc/localtime dangling on NixOS, which crashes Lean's server.
+  # TODO: fix this in core and drop it here. Whether a nube should see dom0's zone at all
   # is open, since passing it through leaks the host's time zone.
   time.timeZone = lib.mkDefault "UTC";
 
   environment.systemPackages = with pkgs; [
     # Nix formatter. nixd, the nix language server, is in the dev-lsp module.
     alejandra
-    # Compilers for the languages highlighted below, which do nothing until invoked.
-    # Their language servers are in dev-lsp.
+    # Compilers. Their language servers are in dev-lsp.
     ghc
     cabal-install
     ocaml

@@ -1,9 +1,5 @@
-# LLM tooling, split out of the dev-nube blueprint so that a dev nube can be had
-# without it. Import both for a nube that wants both.
-#
-# A function of the flake inputs it needs rather than a plain module, for the same
-# reason dev-nube is one: the claude-code overlay comes from a flake input and a
-# module has no way to reach it. Call it from a flake's outputs:
+# LLM agents, kept apart from the dev-nube blueprint. A function of its flake inputs,
+# like the blueprint. Call it from a flake's outputs:
 #
 #   (opQixCommunity.nixosModules.modules.blueprints.llm-tools {
 #     inherit claude-code-third-party;
