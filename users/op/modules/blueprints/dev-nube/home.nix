@@ -27,14 +27,14 @@
     settings = {
       user.name = "op";
       user.email = "op@qixos.org";
-      extraConfig = {
-        init.defaultBranch = "master";
-        pull.rebase = true;
-      };
+      init.defaultBranch = "master";
+      pull.rebase = true;
       alias = {
         gr = "log --oneline --graph --decorate";
         gra = "log --oneline --graph --decorate --all";
         grs = "log --graph --pretty=format:'%Cred%h%Creset - %Cblue%G?%Creset %s %C(yellow)%d %C(bold blue)<%an>'";
+        s = "status";
+        merge-feature = "!f() { git merge --no-ff -m \"Merge feature '$1'\" \"$1\"; }; f";
       };
     };
   };

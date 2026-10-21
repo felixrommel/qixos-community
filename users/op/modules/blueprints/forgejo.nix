@@ -1,14 +1,16 @@
-# Forgejo for a qube with no network (netvm = "none"). Clients reach it on port 3000
-# through ../qubes-tcp-forward.nix, at http://localhost:3000, which is its ROOT_URL.
+# Forgejo for a qube with no network (netvm = "none"). Clients reach it through
+# ../qubes-tcp-forward.nix: http://localhost:3000, its ROOT_URL, and ssh on port 2222.
 #
 # TODO: make these `setup.steps` once the setup module exists.
 #
 #   forgejo-admin admin user create --admin --username <admin> --email <admin>@localhost --random-password
-#   forgejo-admin admin user create --username <name> --email <name>@localhost --random-password
+#   forgejo-admin admin user create --username <name> --email <name>@localhost --random-password \
+#     --must-change-password=false
 #   forgejo-admin admin user generate-access-token --username <name> --token-name <token> \
 #     --scopes write:repository,write:issue,read:user
 #
-# read:user is for clients such as tea, which check a token by reading its owner's profile.
+# --must-change-password=false: Forgejo refuses API calls from an account that still has to
+# change its password. read:user lets clients such as tea check a token.
 { pkgs, lib, config, ... }:
 let
   cfg = config.services.forgejo;
@@ -40,8 +42,13 @@ in
         HTTP_PORT = 3000;
         DOMAIN = "localhost";
         ROOT_URL = "http://localhost:3000/";
-        # Git over HTTP with access tokens.
-        DISABLE_SSH = true;
+        # Forgejo's own ssh server, so the qube runs no sshd.
+        START_SSH_SERVER = true;
+        SSH_LISTEN_HOST = "127.0.0.1";
+        SSH_LISTEN_PORT = 2222;
+        SSH_PORT = 2222;
+        SSH_DOMAIN = "localhost";
+        BUILTIN_SSH_SERVER_USER = "git";
         # No netvm, so no avatars, CDNs or update checks to reach for.
         OFFLINE_MODE = true;
       };
@@ -50,6 +57,9 @@ in
         REQUIRE_SIGNIN_VIEW = true;
       };
       repository.DEFAULT_PRIVATE = "private";
+      # Forgejo runs git from inside its bare repos, which a system-wide
+      # safe.bareRepository = explicit would refuse.
+      "git.config"."safe.bareRepository" = "all";
       mailer.ENABLED = false;
       "cron.update_checker".ENABLED = false;
     };
@@ -61,6 +71,9 @@ in
     ProtectHome = lib.mkForce "tmpfs";
     BindPaths = [ cfg.stateDir ];
   };
+  # Every ReadWritePaths entry must exist under this sandbox (226/NAMESPACE otherwise), and
+  # the module lists the LFS directory without creating it while LFS is off.
+  systemd.tmpfiles.rules = [ "d '${cfg.lfs.contentDir}' 0750 ${cfg.user} ${cfg.group} - -" ];
 
   # qubes-mount-dirs mounts /home after systemd-tmpfiles has run at boot, so the
   # directories the forgejo module's tmpfiles rules create under it land on the root
