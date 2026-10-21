@@ -36,7 +36,8 @@
 
   # The qubes agent points /etc/localtime at a Fedora path NixOS lacks, so it dangles,
   # and Lean's language server exits 1 over it. Setting a zone makes NixOS write a real
-  # one. TODO: fix this in core, keeping dom0's zone, and drop it here.
+  # one. TODO: fix this in core and drop it here. Whether a nube should see dom0's zone at all
+  # is open, since passing it through leaks the host's time zone.
   time.timeZone = lib.mkDefault "UTC";
 
   environment.systemPackages = with pkgs; [
