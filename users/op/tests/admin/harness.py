@@ -19,10 +19,7 @@ SHUTDOWN_DEADLINE = 120
 # Long enough for a disposable to be created, boot, and reach its switch job.
 DISPVM_DEADLINE = 300
 
-# Long enough for an AppVM to switch from the template's closure to its own. The switch
-# is ordered after default.target, so it begins once the nube is already answering ssh,
-# and how long it takes is a property of the closure: a nube carrying a home-manager
-# generation takes far longer than one carrying sshd.
+# Long enough for an AppVM's switch to its own closure, which starts after ssh is up.
 SWITCH_DEADLINE = 600
 
 # Long enough for a template's volumes to settle after it stops. An AppVM's root is a
@@ -62,11 +59,8 @@ def ssh(vm, *command):
 
 
 def wait_for(vm, command, what, deadline_seconds=SWITCH_DEADLINE):
-    """Block until `command` exits zero in the nube, or give up.
-
-    For a precondition that only arrives after ssh does. `what` names the condition, so
-    a timeout says what was never true rather than only which command was run.
-    """
+    """Block until `command` exits zero in the nube, or give up. `what` names it for the
+    timeout message."""
     deadline = time.monotonic() + deadline_seconds
 
     while time.monotonic() < deadline:
