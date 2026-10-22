@@ -1,8 +1,5 @@
-# Nube audio, which qixos core turns on wherever the gui agent is. Declares nothing in a
-# nube that turned it off.
-#
-# What reaches the audio qube cannot be heard from here, so this stops at the last thing
-# the nube controls: whatever an application plays goes to the Qubes sink.
+# What reaches the audio qube cannot be seen from inside the nube, so this proves only
+# that whatever an application plays goes to the Qubes sink, not that it is heard.
 { pkgs, lib, config, ... }:
 {
   config = lib.mkIf config.services.qubes.audio.enable {
