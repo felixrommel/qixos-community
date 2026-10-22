@@ -307,6 +307,12 @@ was called.
 - `password-menu-username-is-what-follows-the-last-separator` - so a service name may contain one, and the entry is still looked up whole
 - `password-menu-refuses-an-entry-without-a-username` - a hard error, decrypting nothing and sending nothing, rather than a quiet fall back to password-only
 
+**audio** (nube test, in-nube, every smoke nube, since core turns it on wherever the gui
+agent is). What reaches the audio qube cannot be heard from inside, so this stops at the
+sink.
+
+- `audio-default-sink-is-qubes` - what an application plays goes to the Qubes sink, which carries it to the audio qube
+
 **task limit** (nube test, admin, `test-smoke-ssh-a`). Any nube shows this. Only
 `infinity` passes; a number means someone chose a ceiling.
 
