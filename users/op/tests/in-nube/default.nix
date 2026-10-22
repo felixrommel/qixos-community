@@ -8,5 +8,6 @@
 
     ./systemd-has-no-ordering-cycles.nix
     ./systemd-broke-no-cycles-at-boot.nix
+    ./audio-default-sink-is-qubes.nix
   ];
 }
