@@ -18,7 +18,7 @@
     qixosAppConfigurations.zotero-nube = qixCore.lib.mkNubeApp {
       modules = [
         ({ pkgs, ... }: {
-          environment.systemPackages = with pkgs; [zotero];
+          environment.systemPackages = with pkgs; [zotero rclone];
         })
         opQixCommunity.nixosModules.modules.blueprints.basic-template
       ];

@@ -53,6 +53,12 @@
     ghc
     cabal-install
     cabal2nix
+    haskell-language-server
+    (agda.withPackages (p: [p.standard-library]))
+    (idris2.withPackages (p: [p.idris2Api]))
+    ocaml
+    lean4
+    zig
     nodejs
     postgresql
     docker
